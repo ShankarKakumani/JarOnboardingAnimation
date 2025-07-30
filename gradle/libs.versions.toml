@@ -18,7 +18,7 @@ okhttp = "4.12.0"
 ktor = "2.3.12"
 room = "2.6.1"
 kotlinSerialization = "1.7.3"
-orbital = "0.4.2"
+orbital = "0.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -70,7 +70,7 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 # Kotlin Serialization
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 
-# Orbital - Shared Element Transitions
+# Orbital - Shared Element Transitions (Maven Central)
 orbital = { group = "com.github.skydoves", name = "orbital", version.ref = "orbital" }
 
 [plugins]

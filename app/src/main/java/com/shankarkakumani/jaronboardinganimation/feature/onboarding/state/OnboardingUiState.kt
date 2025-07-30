@@ -10,7 +10,8 @@ data class OnboardingUiState(
     val error: String? = null,
     val showWelcome: Boolean = true,
     val onboardingData: OnboardingDataModel? = null,
-    val animatedCard: AnimatedCardState? = null
+    val animatedCard: AnimatedCardState? = null,
+    val secondAnimatedCard: AnimatedCardState? = null
 )
 
 @Stable
@@ -20,6 +21,8 @@ data class AnimatedCardState(
     val isVisible: Boolean = false,
     val animationPhase: AnimationPhase = AnimationPhase.SLIDE_TO_CENTER,
     val isExpanded: Boolean = true, // Start expanded, can collapse to small size
+    val rotationZ: Float = 0f, // Rotation in degrees
+    val rotationDuration: Int = 1500, // Duration for straightening rotation
     val sharedElementKey: String = "educationCard" // For Orbital transitions
 )
 

@@ -101,6 +101,19 @@ fun OnboardingScreen(
                             .padding(horizontal = 16.dp)
                     )
                 }
+                
+                // Show second animated card
+                uiState.secondAnimatedCard?.let { cardState ->
+                    val animationDuration = uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
+                    AnimatedCard(
+                        cardState = cardState,
+                        animationDuration = animationDuration,
+                        onToggleExpansion = { }, // No interaction for second card
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(horizontal = 16.dp)
+                    )
+                }
             }
         }
     }

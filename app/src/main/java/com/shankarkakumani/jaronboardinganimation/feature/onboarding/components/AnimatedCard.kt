@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
@@ -30,10 +31,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.skydoves.orbital.Orbital
-import com.skydoves.orbital.OrbitalScope
-import com.skydoves.orbital.animateSharedElementTransition
-import com.skydoves.orbital.rememberContentWithOrbitalScope
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.state.AnimatedCardState
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.state.AnimationPhase
 import com.shankarkakumani.domain.resource.model.EducationCardModel
@@ -47,15 +44,13 @@ fun AnimatedCard(
     modifier: Modifier = Modifier
 ) {
     val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-    val cardWidth = minOf(328.dp, screenWidth - 32.dp) // Responsive width with padding
-    
+
     // Different animation durations for different phases
     val currentAnimationDuration = when (cardState.animationPhase) {
         AnimationPhase.SLIDE_TO_CENTER -> animationDuration.toInt() // Use API duration for first animation
         AnimationPhase.WAITING -> 0 // No animation during waiting
-        AnimationPhase.MOVE_TO_FINAL -> 800 // Faster animation for final positioning
-        AnimationPhase.AUTO_COLLAPSE -> 600 // Quick collapse animation using Orbital
+        AnimationPhase.MOVE_TO_FINAL -> 800 // COMMENTED OUT: Faster animation for final positioning
+        AnimationPhase.AUTO_COLLAPSE -> 600 // Resize animation at center position
     }
     
     // Smooth animation for translation with controlled timing (no overshoot)
@@ -75,56 +70,77 @@ fun AnimatedCard(
         label = "cardAlpha"
     )
     
-    // Use Orbital for smooth expand/collapse transitions
-    Orbital {
-        val (cardContent, orbitalScope) = rememberContentWithOrbitalScope {
-            if (cardState.isExpanded) {
-                ExpandedCardContent(
-                    card = cardState.card,
-                    orbitalScope = this,
-                    sharedElementKey = cardState.sharedElementKey
-                )
-            } else {
-                CollapsedCardContent(
-                    card = cardState.card,
-                    orbitalScope = this,
-                    sharedElementKey = cardState.sharedElementKey,
-                    onExpand = onToggleExpansion
-                )
-            }
+    // Height animation for expand/collapse
+    val animatedHeight by animateFloatAsState(
+        targetValue = if (cardState.isExpanded) 444f else 68f,
+        animationSpec = tween(
+            durationMillis = if (cardState.animationPhase == AnimationPhase.AUTO_COLLAPSE) 600 else currentAnimationDuration,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "cardHeight"
+    )
+
+    
+    val animatedRotationZ by animateFloatAsState(
+        targetValue = cardState.rotationZ,
+        animationSpec = tween(
+            durationMillis = cardState.rotationDuration,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "cardRotation"
+    )
+    
+    // Calculate translation adjustment to keep top edge fixed during height changes
+    val expandedHeight = 444f
+    val collapsedHeight = 68f
+    val heightDifference = expandedHeight - animatedHeight
+    
+    // When shrinking, move the card up by half the height difference
+    // This keeps the top edge in the same position while bottom edge moves up
+    val topAnchorAdjustment = when {
+        !cardState.isExpanded -> {
+            heightDifference / 2f // Move up by half the shrunk amount to keep top edge fixed
         }
-        
-        Card(
-            modifier = modifier
-                .width(cardWidth)
-                .animateSharedElementTransition(
-                    orbitalScope = orbitalScope,
-                    sharedElementKey = cardState.sharedElementKey
-                )
-                .graphicsLayer(
-                    translationY = animatedTranslationY,
-                    alpha = animatedAlpha
-                )
-                .clickable { onToggleExpansion() },
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.Transparent
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 8.dp
+        else -> 0f // When expanded, no adjustment needed
+    }
+    
+    // Determine transform origin based on rotation direction
+    val transformOrigin = when {
+        cardState.rotationZ > 0 -> TransformOrigin(0f, 0.5f) // Positive rotation: pin left side, right side goes down
+        cardState.rotationZ < 0 -> TransformOrigin(1f, 0.5f) // Negative rotation: pin right side, left side goes down
+        else -> TransformOrigin(0.5f, 0.5f) // No rotation: center origin
+    }
+    
+    // Standard Compose animation for expand/collapse transitions
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(animatedHeight.dp)
+            .graphicsLayer(
+                translationY = animatedTranslationY + topAnchorAdjustment,
+                alpha = animatedAlpha,
+                rotationZ = animatedRotationZ,
+                transformOrigin = transformOrigin
             )
-        ) {
-            cardContent()
+            .clickable { onToggleExpansion() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 8.dp
+        )
+    ) {
+        if (cardState.isExpanded) {
+            ExpandedCardContent(card = cardState.card)
+        } else {
+            CollapsedCardContent(card = cardState.card, onExpand = onToggleExpansion)
         }
     }
 }
 
 @Composable
-private fun ExpandedCardContent(
-    card: EducationCardModel,
-    orbitalScope: OrbitalScope,
-    sharedElementKey: String
-) {
+private fun ExpandedCardContent(card: EducationCardModel) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -147,11 +163,7 @@ private fun ExpandedCardContent(
             contentDescription = card.expandStateText,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-                .animateSharedElementTransition(
-                    orbitalScope = orbitalScope,
-                    sharedElementKey = "${sharedElementKey}_image"
-                ),
+                .height(200.dp),
             alignment = Alignment.Center
         )
         
@@ -168,11 +180,7 @@ private fun ExpandedCardContent(
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                lineHeight = 24.sp,
-                modifier = Modifier.animateSharedElementTransition(
-                    orbitalScope = orbitalScope,
-                    sharedElementKey = "${sharedElementKey}_text"
-                )
+                lineHeight = 24.sp
             )
         }
     }
@@ -181,8 +189,6 @@ private fun ExpandedCardContent(
 @Composable
 private fun CollapsedCardContent(
     card: EducationCardModel,
-    orbitalScope: OrbitalScope,
-    sharedElementKey: String,
     onExpand: () -> Unit
 ) {
     Box(
@@ -209,12 +215,7 @@ private fun CollapsedCardContent(
             AsyncImage(
                 model = card.image,
                 contentDescription = card.collapsedStateText,
-                modifier = Modifier
-                    .size(32.dp)
-                    .animateSharedElementTransition(
-                        orbitalScope = orbitalScope,
-                        sharedElementKey = "${sharedElementKey}_image"
-                    ),
+                modifier = Modifier.size(32.dp),
                 alignment = Alignment.Center
             )
             
@@ -225,12 +226,7 @@ private fun CollapsedCardContent(
                 fontWeight = FontWeight.Medium,
                 color = Color.White,
                 textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .padding(start = 12.dp)
-                    .animateSharedElementTransition(
-                        orbitalScope = orbitalScope,
-                        sharedElementKey = "${sharedElementKey}_text"
-                    ),
+                modifier = Modifier.padding(start = 12.dp),
                 maxLines = 2
             )
         }
