@@ -21,3 +21,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "JarOnboardingAnimation"
 include(":app")
+include(":common")
+include(":data")
+include(":domain")
