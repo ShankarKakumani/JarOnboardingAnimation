@@ -77,6 +77,7 @@ dependencies {
     
     // Animation
     implementation("androidx.compose.animation:animation:1.5.8")
+    implementation(libs.orbital)
     
     // Testing
     testImplementation(libs.junit)

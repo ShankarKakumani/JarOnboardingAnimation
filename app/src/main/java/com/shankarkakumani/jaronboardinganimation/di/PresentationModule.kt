@@ -5,7 +5,6 @@ import coil.ImageLoader
 import coil.decode.SvgDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
-import com.shankarkakumani.jaronboardinganimation.ui.animations.CardAnimator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,10 +15,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object PresentationModule {
-    
-    @Provides
-    @Singleton
-    fun provideCardAnimator(): CardAnimator = CardAnimator()
     
     @Provides
     @Singleton

@@ -6,28 +6,25 @@ import com.shankarkakumani.domain.usecase.onboarding.usecase.GetOnboardingDataUs
 import com.shankarkakumani.domain.resource.input.GetOnboardingDataInput
 import com.shankarkakumani.domain.resource.enum.CacheStrategyEnum
 import com.shankarkakumani.domain.resource.enum.NetworkClientTypeEnum
+import com.shankarkakumani.domain.resource.model.EducationCardModel
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.state.*
-import com.shankarkakumani.jaronboardinganimation.ui.animations.CardAnimator
 import com.shankarkakumani.common.result.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
-    private val getOnboardingDataUseCase: GetOnboardingDataUseCase,
-    private val cardAnimator: CardAnimator
+    private val getOnboardingDataUseCase: GetOnboardingDataUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState: StateFlow<OnboardingUiState> = _uiState.asStateFlow()
-
-    private var animationJob: Job? = null
 
     init {
         loadOnboardingData()
@@ -35,14 +32,10 @@ class OnboardingViewModel @Inject constructor(
 
     fun onEvent(event: OnboardingEvent) {
         when (event) {
-            OnboardingEvent.StartAnimation -> startAnimation()
-            OnboardingEvent.SkipAnimation -> skipToEnd()
-            OnboardingEvent.PauseAnimation -> pauseAnimation()
-            OnboardingEvent.ResumeAnimation -> resumeAnimation()
-            OnboardingEvent.OnCtaClick -> handleCtaClick()
             OnboardingEvent.OnBackPressed -> handleBackPress()
             OnboardingEvent.RetryLoad -> loadOnboardingData()
-            is OnboardingEvent.OnCardClick -> handleCardClick(event.cardIndex)
+            is OnboardingEvent.StartOnboarding -> startOnboarding(event.screenHeight)
+            OnboardingEvent.ToggleCardExpansion -> toggleCardExpansion()
         }
     }
 
@@ -57,19 +50,10 @@ class OnboardingViewModel @Inject constructor(
         
         when (val result = getOnboardingDataUseCase(input)) {
             is Result.Success -> {
-                val onboardingData = result.data
-                val cards = onboardingData.educationCards.mapIndexed { index, card ->
-                    AnimatedCardState(
-                        card = card,
-                        animationState = CardAnimationState.HIDDEN
-                    )
-                }
-                
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        cards = cards,
-                        onboardingData = onboardingData
+                        onboardingData = result.data
                     )
                 }
             }
@@ -77,8 +61,7 @@ class OnboardingViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = result.exception.message ?: "Unknown error occurred",
-                        animationPhase = AnimationPhase.Error
+                        error = result.exception.message ?: "Unknown error occurred"
                     )
                 }
             }
@@ -93,98 +76,118 @@ class OnboardingViewModel @Inject constructor(
         }
     }
 
-    private fun startAnimation() {
-        animationJob?.cancel()
-        animationJob = viewModelScope.launch {
-            val animationConfig = _uiState.value.onboardingData?.animationConfig ?: return@launch
-            
-            cardAnimator.startSequentialAnimation(
-                cards = _uiState.value.cards,
-                config = animationConfig,
-                onPhaseChange = { phase ->
-                    _uiState.update { it.copy(animationPhase = phase) }
-                },
-                onCardStateChange = { cardIndex, cardState ->
-                    _uiState.update { state ->
-                        state.copy(
-                            cards = state.cards.mapIndexed { index, card ->
-                                if (index == cardIndex) card.copy(animationState = cardState)
-                                else card
-                            },
-                            currentCardIndex = cardIndex
-                        )
-                    }
-                }
-            )
+    private fun startOnboarding(screenHeight: Float) {
+        _uiState.update { it.copy(showWelcome = false) }
+        
+        // Start card animation
+        val firstCard = _uiState.value.onboardingData?.educationCards?.firstOrNull()
+        if (firstCard != null) {
+            animateFirstCard(firstCard, screenHeight)
         }
     }
-
-    private fun skipToEnd() {
-        animationJob?.cancel()
+    
+    private fun animateFirstCard(card: EducationCardModel, screenHeight: Float) = viewModelScope.launch {
+        // Calculate positions like in slideIn PoC - using actual screen dimensions
+        val cardHeight = 444f
+        val extraBuffer = 300f
+        
+        // Start position: way below screen (like PoC)
+        val startPosition = screenHeight + cardHeight + extraBuffer
+        
+        // First target position: 178px from top (center position)
+        // Since we're using Alignment.Center, center = screenHeight/2
+        // 178px from top = center - (screenHeight/2 - 178)
+        val centerPosition = -(screenHeight/2 - 178f) // 178px from top
+        
+        // Final target position: 12px from top
+        val finalPosition = -(screenHeight/2 - 12f) // 12px from top
+        
+        // Debug logging
+        println("🔍 Card Animation Debug:")
+        println("   Screen Height: $screenHeight")
+        println("   Start Position: $startPosition (should be below screen)")
+        println("   Center Position: $centerPosition (should be 178px from top)")
+        println("   Final Position: $finalPosition (should be 12px from top)")
+        
+        // Phase 1: Initialize card at bottom of screen (way below)
         _uiState.update { state ->
             state.copy(
-                animationPhase = AnimationPhase.CtaVisible,
-                cards = state.cards.map { card ->
-                    card.copy(
-                        animationState = CardAnimationState.COLLAPSED,
-                        isVisible = true,
-                        expandProgress = 0f,
-                        translationY = 0f
-                    )
-                }
+                animatedCard = AnimatedCardState(
+                    card = card,
+                    translationY = startPosition,
+                    isVisible = true,
+                    animationPhase = AnimationPhase.SLIDE_TO_CENTER
+                )
             )
         }
-    }
-
-    private fun pauseAnimation() {
-        animationJob?.cancel()
-    }
-
-    private fun resumeAnimation() {
-        startAnimation()
-    }
-
-    private fun handleCtaClick() {
-        // Navigate to next screen or handle CTA action
-        _uiState.update { it.copy(animationPhase = AnimationPhase.Complete) }
+        
+        // Small delay to ensure card is rendered
+        delay(50)
+        
+        // Phase 2: Smoothly move to center position (178px from top)
+        _uiState.update { state ->
+            state.animatedCard?.let { currentCard ->
+                state.copy(
+                    animatedCard = currentCard.copy(translationY = centerPosition)
+                )
+            } ?: state
+        }
+        
+        // Phase 3: Wait for first animation to complete + expandCardStayInterval
+        val firstAnimationDuration = _uiState.value.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
+        val stayInterval = _uiState.value.onboardingData?.animationConfig?.expandCardStayInterval ?: 2000L
+        
+        delay(firstAnimationDuration + stayInterval)
+        
+        // Phase 4: Update animation phase to WAITING
+        _uiState.update { state ->
+            state.animatedCard?.let { currentCard ->
+                state.copy(
+                    animatedCard = currentCard.copy(animationPhase = AnimationPhase.WAITING)
+                )
+            } ?: state
+        }
+        
+        // Phase 5: Move to final position (12px from top)
+        _uiState.update { state ->
+            state.animatedCard?.let { currentCard ->
+                state.copy(
+                    animatedCard = currentCard.copy(
+                        translationY = finalPosition,
+                        animationPhase = AnimationPhase.MOVE_TO_FINAL
+                    )
+                )
+            } ?: state
+        }
+        
+        // Phase 6: Wait for the move-to-final animation to complete, then auto-collapse
+        delay(800) // Duration of move-to-final animation
+        
+        // Phase 7: Auto-collapse to small size using Orbital
+        _uiState.update { state ->
+            state.animatedCard?.let { currentCard ->
+                state.copy(
+                    animatedCard = currentCard.copy(
+                        isExpanded = false,
+                        animationPhase = AnimationPhase.AUTO_COLLAPSE
+                    )
+                )
+            } ?: state
+        }
     }
 
     private fun handleBackPress() {
-        // Handle back navigation
-        when (_uiState.value.animationPhase) {
-            is AnimationPhase.Welcome -> {
-                // Allow system back behavior
-            }
-            else -> {
-                // Reset to welcome state
-                _uiState.update { it.copy(animationPhase = AnimationPhase.Welcome) }
-            }
-        }
+        // Handle back navigation - reset to welcome and clear animated card
+        _uiState.update { it.copy(showWelcome = true, animatedCard = null) }
     }
-
-    private fun handleCardClick(cardIndex: Int) {
-        val currentCards = _uiState.value.cards
-        if (cardIndex in currentCards.indices) {
-            val clickedCard = currentCards[cardIndex]
-            val newState = when (clickedCard.animationState) {
-                CardAnimationState.COLLAPSED -> CardAnimationState.EXPANDED
-                CardAnimationState.EXPANDED -> CardAnimationState.COLLAPSED
-                else -> return // Don't handle clicks during animation
-            }
-            
-            _uiState.update { state ->
+    
+    private fun toggleCardExpansion() {
+        _uiState.update { state ->
+            state.animatedCard?.let { currentCard ->
                 state.copy(
-                    cards = state.cards.mapIndexed { index, card ->
-                        if (index == cardIndex) card.copy(animationState = newState)
-                        else card
-                    }
+                    animatedCard = currentCard.copy(isExpanded = !currentCard.isExpanded)
                 )
-            }
+            } ?: state
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        animationJob?.cancel()
     }
 } 

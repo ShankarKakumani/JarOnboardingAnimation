@@ -1,17 +1,23 @@
 package com.shankarkakumani.data.client.retrofit.client
 
-import com.google.gson.Gson
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import kotlinx.serialization.json.Json
 // Note: Using debug logging as default for development
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class RetrofitClientProvider @Inject constructor() {
+    
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+    }
     
     fun provideOkHttpClient(): OkHttpClient {
         return OkHttpClient.Builder()
@@ -28,11 +34,7 @@ class RetrofitClientProvider @Inject constructor() {
         return Retrofit.Builder()
             .baseUrl(RetrofitConfig.BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(
-                Gson().newBuilder()
-                    .setLenient()
-                    .create()
-            ))
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
     }
 } 

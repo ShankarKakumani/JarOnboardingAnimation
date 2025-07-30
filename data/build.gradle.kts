@@ -51,9 +51,13 @@ dependencies {
     // Retrofit
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
+    implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.gson)
+    
+    // Kotlinx Serialization
+    implementation(libs.kotlinx.serialization.json)
 
     // Ktor
     implementation(libs.ktor.client.core)
