@@ -97,8 +97,7 @@ class OnboardingViewModel @Inject constructor(
             // Get API-driven animation config with fallbacks
             val animationConfig = _uiState.value.onboardingData?.animationConfig
             val initialDelay = animationConfig?.collapseExpandIntroInterval ?: 500L
-            val expandDuration = animationConfig?.expandCardStayInterval ?: 2000L
-            val tiltDuration = animationConfig?.collapseCardTiltInterval ?: 2000L
+            val rotationDuration = animationConfig?.collapseCardTiltInterval ?: 2000L
 
             _uiState.update { state ->
                 state.copy(
@@ -125,7 +124,7 @@ class OnboardingViewModel @Inject constructor(
                 } ?: state
             }
 
-            delay(expandDuration)
+            delay(2000)
 
             _uiState.update { state ->
                 state.animatedCard?.let { currentCard ->
@@ -134,6 +133,7 @@ class OnboardingViewModel @Inject constructor(
                             isExpanded = false,
                             offset = restingPosition,
                             rotationZ = -6f,
+                            rotationDuration = rotationDuration.toInt()
                         ),
                     )
                 } ?: state
@@ -145,12 +145,12 @@ class OnboardingViewModel @Inject constructor(
                 animateSecondCard(secondCard, screenHeight, restingPosition)
             }
 
-            delay(tiltDuration)
+            delay(2000)
             _uiState.update { state ->
                 state.animatedCard?.let { currentCard ->
                     state.copy(
                         animatedCard = currentCard.copy(
-                            rotationZ = 0f, rotationDuration = 1500
+                            rotationZ = 0f, rotationDuration = rotationDuration.toInt()
                         ),
                         backgroundColor = null,
                     )
@@ -170,8 +170,7 @@ class OnboardingViewModel @Inject constructor(
         // Get API-driven animation config with fallbacks
         val animationConfig = _uiState.value.onboardingData?.animationConfig
         val quickDelay = 100L // Small positioning delay
-        val expandDuration = animationConfig?.expandCardStayInterval ?: 2000L
-        val tiltDuration = animationConfig?.collapseCardTiltInterval ?: 2000L
+        val rotationDuration = animationConfig?.collapseCardTiltInterval ?: 2000L
 
         _uiState.update { state ->
             state.copy(
@@ -198,7 +197,7 @@ class OnboardingViewModel @Inject constructor(
             } ?: state
         }
 
-        delay(expandDuration)
+        delay(2000)
 
         _uiState.update { state ->
             state.secondAnimatedCard?.let { currentCard ->
@@ -206,7 +205,7 @@ class OnboardingViewModel @Inject constructor(
                     secondAnimatedCard = currentCard.copy(
                         offset = restingPosition,
                         rotationZ = 0f,
-                        rotationDuration = 1500,
+                        rotationDuration = rotationDuration.toInt(),
                     ),
                     backgroundColor = card.backgroundColor,
                     startGradient = card.startGradient,
@@ -215,7 +214,7 @@ class OnboardingViewModel @Inject constructor(
             } ?: state
         }
 
-        delay(tiltDuration)
+        delay(2000)
 
         _uiState.update { state ->
             state.secondAnimatedCard?.let { currentCard ->
@@ -258,7 +257,7 @@ class OnboardingViewModel @Inject constructor(
         // Get API-driven animation config with fallbacks
         val animationConfig = _uiState.value.onboardingData?.animationConfig
         val quickDelay = 100L // Small positioning delay
-        val expandDuration = animationConfig?.expandCardStayInterval ?: 2000L
+        val rotationDuration = animationConfig?.collapseCardTiltInterval ?: 2000L
 
         _uiState.update { state ->
             state.copy(
@@ -285,7 +284,7 @@ class OnboardingViewModel @Inject constructor(
             } ?: state
         }
 
-        delay(expandDuration)
+        delay(2000)
 
         _uiState.update { state ->
             state.thirdAnimatedCard?.let { currentCard ->
@@ -293,7 +292,7 @@ class OnboardingViewModel @Inject constructor(
                     thirdAnimatedCard = currentCard.copy(
                         offset = restingPosition,
                         rotationZ = 0f,
-                        rotationDuration = 1500,
+                        rotationDuration = rotationDuration.toInt(),
                     ),
                     backgroundColor = card.backgroundColor,
                     startGradient = card.startGradient,
@@ -302,7 +301,8 @@ class OnboardingViewModel @Inject constructor(
             } ?: state
         }
 
-        delay(expandDuration)
+
+        delay(2500)
         _uiState.update { state ->
             state.thirdAnimatedCard?.let { currentCard ->
                 state.copy(
