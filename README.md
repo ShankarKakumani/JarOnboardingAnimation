@@ -1,5 +1,12 @@
 # JAR Onboarding Animation
 
+## 📱 Download
+
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-228B22?style=for-the-badge&logo=android)](https://github.com/ShankarKakumani/JarOnboardingAnimation/raw/main/app/release/app-release.apk)
+
+**APK**: Ready to install directly on your Android device. Simply download and install!
+
+
 Android onboarding implementation with card animations, dynamic backgrounds, and clean architecture.
 
 ## 🚀 Features
@@ -91,19 +98,6 @@ API Config: ┌─────────────────────�
 - **Image Loading**: Coil
 - **Lottie**: Airbnb Lottie Compose
 
-## 📱 Download
-
-### Ready to Try?
-Download the latest release directly:
-
-[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-228B22?style=for-the-badge&logo=android)](https://github.com/ShankarKakumani/JarOnboardingAnimation/raw/main/app/release/app-release.apk)
-
-**APK**: Ready to install directly on your Android device. Simply download and install!
-
-### System Requirements
-- **Android 7.0+** (API level 24)
-- **ARM64** or **x86_64** architecture
-- **50MB** free storage space
 
 ## 🚦 Getting Started
 
