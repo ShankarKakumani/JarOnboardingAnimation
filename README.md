@@ -96,7 +96,7 @@ API Config: ┌─────────────────────�
 ### Ready to Try?
 Download the latest release directly:
 
-[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-green?style=for-the-badge&logo=android)](https://github.com/ShankarKakumani/JarOnboardingAnimation/releases/latest/download/app-release.apk)
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-228B22?style=for-the-badge&logo=android)](https://github.com/ShankarKakumani/JarOnboardingAnimation/raw/main/app/release/app-release.apk)
 
 **APK**: Ready to install directly on your Android device. Simply download and install!
 
