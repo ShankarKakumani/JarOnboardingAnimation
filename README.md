@@ -96,9 +96,10 @@ API Config: ┌─────────────────────�
 ### Ready to Try?
 Download the latest release directly:
 
-[![Download AAB](https://img.shields.io/badge/Download-AAB%20v1.0.0-blue?style=for-the-badge&logo=android)](https://github.com/ShankarKakumani/JarOnboardingAnimation/releases/latest/download/app-release.aab)
+[![Download APK](https://img.shields.io/badge/Download-APK%20v1.0.0-green?style=for-the-badge&logo=android)](https://github.com/ShankarKakumani/JarOnboardingAnimation/releases/latest/download/app-release.apk) [![Download AAB](https://img.shields.io/badge/Download-AAB%20v1.0.0-blue?style=for-the-badge&logo=android)](https://github.com/ShankarKakumani/JarOnboardingAnimation/releases/latest/download/app-release.aab)
 
-**Note:** AAB files require installation via `bundletool` or direct deployment. For easy installation, check our [GitHub Releases](https://github.com/ShankarKakumani/JarOnboardingAnimation/releases) for APK files.
+**APK**: Ready to install directly on your Android device  
+**AAB**: For Google Play Store or requires `bundletool` for installation
 
 ### System Requirements
 - **Android 7.0+** (API level 24)
