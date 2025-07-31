@@ -44,30 +44,41 @@ The data layer supports multiple network clients and caching strategies. The rep
               └─────────────┘ └─────────────┘ └─────────────┘
 ```
 
-This approach provides flexibility for different use cases - Ktor for lightweight requests, Retrofit for complex API interactions, and Room for local caching.
+This approach provides flexibility for different use cases - Ktor for lightweight requests, Retrofit for complex API interactions, and Room for local caching. The repository also handles **animation configuration** from the API, enabling server-controlled timing adjustments.
 
 ## 🎬 Animation Flow
 
-The animation system orchestrates three cards in sequence, with each card having distinct timing and transform behaviors. Background gradients transition smoothly based on API-provided colors.
+The animation system orchestrates three cards in sequence with **API-driven** timing configurations and **dynamic rotation durations**. Each card follows a specific sequence with hybrid timing - some values from API, others optimized for user experience.
 
 ```
-Card 1: ┌───────────────────────────────────────────────────────────────────────────┐
-        │ 1. Slide Up │ 2. Expand    │ 3. Collapse  │ 4. Tilt (-6°) │ 5. Straighten │
-        │   (500ms)   │   (3000ms)   │   (1000ms)   │   (instant)   │   (1000ms)    │
-        └───────────────────────────────────────────────────────────────────────────┘
+Card 1: ┌─────────────────────────────────────────────────────────────────────────────┐
+        │ 1. Slide Up │ 2. Wait/Expand │ 3. Collapse  │ 4. Tilt (-6°) │ 5. Straighten │
+        │  (500ms*)   │    (2000ms)    │  (instant)   │  (instant)    │  (2000ms)     │
+        └─────────────────────────────────────────────────────────────────────────────┘
 
-Card 2:                              ┌─────────────────────────────────────────────┐
-                                     │ 1. Slide Up │ 2. Expand    │ 3. Tilt (+6°) │
-                                     │   (100ms)   │   (3000ms)   │   (1000ms)    │
-                                     └─────────────────────────────────────────────┘
+Card 2:                               ┌─────────────────────────────────────────────┐
+                                      │ 1. Slide Up │ 2. Wait/Pos  │ 3. Tilt (+6°)  │
+                                      │   (100ms)   │   (2000ms)   │   (2000ms)     │
+                                      └─────────────────────────────────────────────┘
 
-Card 3:                                             ┌─────────────────────────────┐
-                                                    │ 1. Slide Up │ 2. Final Pos  │
-                                                    │   (100ms)   │   (3000ms)    │
-                                                    └─────────────────────────────┘
+Card 3:                                              ┌─────────────────────────────┐
+                                                     │ 1. Slide Up │ 2. Final Wait │
+                                                     │   (100ms)   │   (2500ms)    │
+                                                     └─────────────────────────────┘
+
+API Config: ┌────────────────────────────────────────────────────────────────────┐
+            │ • collapseExpandIntroInterval: 500ms* (initial slide timing)       │
+            │ • collapseCardTiltInterval: 2000ms* (rotation duration)            │
+            │ • Fixed delays: 2000ms/2500ms (optimized for UX flow)              │
+            └────────────────────────────────────────────────────────────────────┘
 ```
 
-Each animation uses custom transform origins for realistic rotation effects, with background gradients synchronized to card transitions.
+**Key Features:**
+- **Dynamic rotation durations** sourced from `collapseCardTiltInterval` API value
+- **Initial slide timing** uses `collapseExpandIntroInterval` from API  
+- **Fixed wait times** optimized for smooth user experience flow
+- **Custom transform origins** for realistic rotation effects
+- **Background gradients** synchronized with card transitions
 
 ## 🛠️ Tech Stack
 
@@ -105,6 +116,36 @@ Connects to: `https://api.npoint.io/796729cca6c55a7d089e`
 - Automatic retry and error handling
 - Configurable caching strategies
 - Network client abstraction (easily switch between Ktor/Retrofit)
+
+## 🔮 Future Enhancements
+
+Due to time constraints, the following features were identified but not implemented:
+
+### **1. Enhanced Card Transitions**
+- **Smooth expand-to-collapse animation**: Currently cards instantly switch states
+- **Proposed solution**: Use `AnimatedContent` with custom `ContentTransform` for size transitions
+- **Technical approach**: Implement height animation with `animateContentSize()` modifier
+
+### **2. Interactive Card Expansion**
+- **Click-to-expand functionality**: Allow users to re-expand collapsed cards  
+- **Proposed solution**: Add click handlers to collapsed cards with state management
+- **Technical approach**: 
+  ```kotlin
+  // Add to AnimatedCardState
+  val isUserExpanded: Boolean = false
+  val allowInteraction: Boolean = true
+  
+  // Click handler in CollapsedCardContent  
+  .clickable { onCardClick(cardState.card.id) }
+  ```
+
+### **3. Additional Improvements**
+- **Staggered entry animations** for multiple cards
+- **Haptic feedback** on card interactions
+- **Accessibility improvements** with semantic descriptions
+- **A/B testing framework** for different animation timings
+
+These enhancements would improve user engagement and interaction patterns while maintaining the current animation architecture.
 
 ## 🎨 Implementation Details
 
