@@ -45,7 +45,7 @@ class OnboardingViewModel @Inject constructor(
         val input = GetOnboardingDataInput(
             forceRefresh = false,
             cacheStrategy = CacheStrategyEnum.CACHE_FIRST,
-            networkClientType = NetworkClientTypeEnum.RETROFIT
+            networkClientType = NetworkClientTypeEnum.KTOR
         )
 
         when (val result = getOnboardingDataUseCase(input)) {

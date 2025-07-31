@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import com.shankarkakumani.jaronboardinganimation.R
-import androidx.core.graphics.toColorInt
+import com.shankarkakumani.jaronboardinganimation.util.ColorParser
 
 @Composable
 fun DynamicGradientBackground(
@@ -46,19 +46,19 @@ fun DynamicGradientBackground(
     val colorTransitionDuration = 800 // Smooth color transition duration
     
     val animatedShimmerStartColor by animateColorAsState(
-        targetValue =  parseHexColor(startGradient),
+        targetValue = ColorParser.parseHexColorOrDefault(startGradient, Color.Transparent),
         animationSpec = tween(durationMillis = colorTransitionDuration),
         label = "shimmerStartColor"
     )
     
     val animatedShimmerEndColor by animateColorAsState(
-        targetValue =  parseHexColor(endGradient),
+        targetValue = ColorParser.parseHexColorOrDefault(endGradient, Color.Transparent),
         animationSpec = tween(durationMillis = colorTransitionDuration),
         label = "shimmerEndColor"
     )
     
     val animatedBackgroundColor by animateColorAsState(
-        targetValue = parseHexColor(backgroundColor),
+        targetValue = ColorParser.parseHexColorOrDefault(backgroundColor, Color.Transparent),
         animationSpec = tween(durationMillis = colorTransitionDuration),
         label = "backgroundColor"
     )
@@ -133,15 +133,4 @@ fun DynamicGradientBackground(
 
 }
 
-/**
- * Parse hex color string to Compose Color
- */
-private fun parseHexColor(hexString: String?): Color {
-    if(hexString == null) return Color.Transparent
-    return try {
-        val colorString = if (hexString.startsWith("#")) hexString else "#$hexString"
-        Color(colorString.toColorInt())
-    } catch (e: Exception) {
-        Color.Transparent // Fallback color
-    }
-} 
+ 

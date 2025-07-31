@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,8 +37,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.state.AnimatedCardState
 import com.shankarkakumani.domain.resource.model.EducationCardModel
-import androidx.core.graphics.toColorInt
 import com.shankarkakumani.jaronboardinganimation.ui.theme.StyleManager
+import com.shankarkakumani.jaronboardinganimation.util.ColorParser
 
 
 /**
@@ -121,16 +123,17 @@ private fun ExpandedCardContent(card: EducationCardModel) {
             .fillMaxWidth()
 //            .height(444.dp)
             .background(
-                color = parseHexColor(card.backgroundColor).copy(alpha = 0.3f),
+                color = ColorParser.parseHexColor(card.backgroundColor).copy(alpha = 0.3f),
                 shape = RoundedCornerShape(28.dp)
             )
             .border(
-                width = 1.dp,
-                brush = Brush.horizontalGradient(
+                width = 0.5.dp,
+                brush = Brush.linearGradient(
                     colors = listOf(
-                        parseHexColor(card.strokeStartColor),
-                        parseHexColor(card.strokeEndColor)
-                    )
+                        ColorParser.parseHexColor(card.strokeStartColor).copy(alpha = 0.2f),
+                        ColorParser.parseHexColor(card.strokeEndColor)
+                    ),
+
                 ),
                 shape = RoundedCornerShape(28.dp)
             )
@@ -152,7 +155,7 @@ private fun ExpandedCardContent(card: EducationCardModel) {
 
         Text(
             text = card.expandStateText,
-            style = StyleManager.h2.copy(color = Color.White),
+            style = StyleManager.h4.copy(color = Color.White),
             textAlign = TextAlign.Center
         )
     }
@@ -167,13 +170,13 @@ private fun CollapsedCardContent(
             .fillMaxWidth()
             .height(68.dp)
             .background(
-                color = parseHexColor(card.backgroundColor).copy(alpha = 0.32f),
-                shape = RoundedCornerShape(16.dp)
+                color = ColorParser.parseHexColor(card.backgroundColor).copy(alpha = 0.32f),
+                shape = RoundedCornerShape(28.dp)
             )
             .border(
                 width = 1.dp,
                 color = Color.White.copy(alpha = 0.12f),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(28.dp)
             )
             .padding(horizontal = 12.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterStart
@@ -187,33 +190,18 @@ private fun CollapsedCardContent(
                     model = card.image,
                     contentDescription = card.collapsedStateText,
                     modifier = Modifier
-                        .size(32.dp),
+                        .size(32.dp)
+                        .clip(CircleShape),
                     alignment = Alignment.Center
                 )
             }
-
+            Spacer(modifier = Modifier.width(16.dp))
             // Collapsed text next to image
             Text(
                 text = card.collapsedStateText,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White,
-                textAlign = TextAlign.Start,
-                modifier = Modifier.padding(start = 12.dp),
-                maxLines = 2
+                style = StyleManager.h6.copy(color = Color.White),
             )
         }
     }
 }
 
-/**
- * Parse hex color string to Compose Color
- */
-private fun parseHexColor(hexString: String): Color {
-    return try {
-        val colorString = if (hexString.startsWith("#")) hexString else "#$hexString"
-        Color(colorString.toColorInt())
-    } catch (e: Exception) {
-        Color.Gray // Fallback color
-    }
-}

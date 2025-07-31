@@ -49,7 +49,16 @@ object StyleManager {
     
     val h4 = TextStyle(
         fontFamily = FontFamily.Default, // TODO: Replace with InterFontFamily when font files are added
-        fontWeight = FontWeight.Bold, // 700 weight = Bold
+        fontWeight = FontWeight.W700, // 700 weight = Bold
+        fontSize = 20.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp, // 0% letter spacing
+        textAlign = TextAlign.Center
+    )
+
+    val h6 = TextStyle(
+        fontFamily = FontFamily.Default, // TODO: Replace with InterFontFamily when font files are added
+        fontWeight = FontWeight.W700, // 700 weight = Bold
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.sp, // 0% letter spacing

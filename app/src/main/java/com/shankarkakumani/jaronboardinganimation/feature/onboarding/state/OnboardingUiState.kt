@@ -16,7 +16,8 @@ data class OnboardingUiState(
     val startGradient: String? = null,
     val endGradient: String? = null,
     val backgroundColor: String? = null,
-    val startY: Float = 0f
+    val startY: Float = 0f,
+    val showFinalCTA: Boolean = false,
 )
 
 @Stable

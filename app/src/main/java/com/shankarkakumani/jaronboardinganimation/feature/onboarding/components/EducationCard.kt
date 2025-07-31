@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.shankarkakumani.domain.resource.model.EducationCardModel
+import com.shankarkakumani.jaronboardinganimation.util.ColorParser
 
 @Composable
 fun EducationCard(
@@ -53,8 +54,8 @@ fun EducationCard(
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(
-                            parseHexColor(card.backgroundColor),
-                            parseHexColor(card.startGradient)
+                            ColorParser.parseHexColor(card.backgroundColor),
+                            ColorParser.parseHexColor(card.startGradient)
                         )
                     ),
                     shape = RoundedCornerShape(16.dp)
@@ -160,15 +161,3 @@ private fun CollapsedCardContent(card: EducationCardModel) {
         }
     }
 }
-
-/**
- * Parse hex color string to Compose Color
- */
-private fun parseHexColor(hexString: String): Color {
-    return try {
-        val colorString = if (hexString.startsWith("#")) hexString else "#$hexString"
-        Color(android.graphics.Color.parseColor(colorString))
-    } catch (e: Exception) {
-        Color.Gray // Fallback color
-    }
-} 

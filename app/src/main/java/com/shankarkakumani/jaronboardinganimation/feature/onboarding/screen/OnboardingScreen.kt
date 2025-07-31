@@ -26,6 +26,7 @@ import com.shankarkakumani.jaronboardinganimation.feature.onboarding.components.
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.components.OnboardingHeader
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.components.DynamicGradientBackground
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.components.AnimatedCard
+import com.shankarkakumani.jaronboardinganimation.feature.onboarding.components.CtaButton
 
 @Composable
 fun OnboardingScreen(
@@ -115,6 +116,29 @@ fun OnboardingScreen(
                     AnimatedCard(
                         cardState = cardState,
                     )
+                }
+
+                // CTA Button positioned at bottom
+                AnimatedVisibility(
+                    visible = uiState.showFinalCTA,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                ) {
+                    uiState.onboardingData?.let { data ->
+                        CtaButton(
+                            text = data.saveButton.text,
+                            backgroundColor = data.saveButton.backgroundColor,
+                            textColor = data.saveButton.textColor,
+                            strokeColor = data.saveButton.strokeColor,
+                            lottieUrl = data.ctaLottie, // Pass the Lottie animation URL
+                            onClick = {
+                                // TODO: Handle CTA click (deeplink, navigation, etc.)
+                                data.saveButton.deeplink?.let { deeplink ->
+                                    // Handle deeplink navigation
+                                }
+                            },
+                            modifier = Modifier.padding(bottom = 6.8.dp)
+                        )
+                    }
                 }
             }
         }
