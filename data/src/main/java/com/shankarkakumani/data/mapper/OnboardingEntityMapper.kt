@@ -27,7 +27,8 @@ fun EducationCardEntity.toEducationCardModel(): EducationCardModel {
         backgroundColor = backgroundColor,
         expandStateText = expandStateText,
         strokeStartColor = strokeStartColor,
-        collapsedStateText = collapsedStateText
+        collapsedStateText = collapsedStateText,
+        startY = 0f
     )
 }
 

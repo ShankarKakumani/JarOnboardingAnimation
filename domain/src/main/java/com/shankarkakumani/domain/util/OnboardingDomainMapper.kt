@@ -26,7 +26,8 @@ object OnboardingDomainMapper {
             strokeStartColor = strokeStartColor,
             strokeEndColor = strokeEndColor,
             startGradient = startGradient,
-            endGradient = endGradient
+            endGradient = endGradient,
+            startY = 0f
         )
         
         return if (card.isValid()) {

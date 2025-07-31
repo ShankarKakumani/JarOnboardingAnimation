@@ -2,7 +2,13 @@
 <resources>
 
     <style name="Theme.JarOnboardingAnimation" parent="android:Theme.Material.NoActionBar">
+        <!-- Keep status bar transparent for edge-to-edge -->
         <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- Set navigation bar to black -->
         <item name="android:navigationBarColor">@android:color/black</item>
+        
+        <!-- Ensure system bars blend with app content -->
+        <item name="android:enforceNavigationBarContrast">false</item>
+        <item name="android:enforceStatusBarContrast">false</item>
     </style>
 </resources>

@@ -1,33 +1,35 @@
 package com.shankarkakumani.jaronboardinganimation.feature.onboarding.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import com.shankarkakumani.jaronboardinganimation.R
+import androidx.core.graphics.toColorInt
 
 @Composable
 fun DynamicGradientBackground(
     showWelcome: Boolean,
-    cardBackgroundColor: String? = null,
+    backgroundColor: String? = null,
+    startGradient: String? = null,
+    endGradient: String? = null,
     animationDuration: Long = 1500L,
+    startY: Float = 0f,
     modifier: Modifier = Modifier
 ) {
     // Welcome background color
@@ -40,6 +42,34 @@ fun DynamicGradientBackground(
         label = "backgroundTransition"
     )
     
+    // Animate shimmer colors with smooth transitions
+    val colorTransitionDuration = 800 // Smooth color transition duration
+    
+    val animatedShimmerStartColor by animateColorAsState(
+        targetValue =  parseHexColor(startGradient),
+        animationSpec = tween(durationMillis = colorTransitionDuration),
+        label = "shimmerStartColor"
+    )
+    
+    val animatedShimmerEndColor by animateColorAsState(
+        targetValue =  parseHexColor(endGradient),
+        animationSpec = tween(durationMillis = colorTransitionDuration),
+        label = "shimmerEndColor"
+    )
+    
+    val animatedBackgroundColor by animateColorAsState(
+        targetValue = parseHexColor(backgroundColor),
+        animationSpec = tween(durationMillis = colorTransitionDuration),
+        label = "backgroundColor"
+    )
+    
+    // Animate startY position for gradient control
+    val animatedStartY by animateFloatAsState(
+        targetValue = startY,
+        animationSpec = tween(durationMillis = colorTransitionDuration),
+        label = "gradientStartY"
+    )
+    
     // Calculate current background using exact Figma colors
     val currentBrush = if (showWelcome) {
         // Solid welcome color
@@ -47,82 +77,71 @@ fun DynamicGradientBackground(
             colors = listOf(welcomeColor, welcomeColor)
         )
     } else {
-        // Use card's backgroundColor if available, otherwise use Figma colors
-        val baseColor = if (cardBackgroundColor != null) {
-            parseHexColor(cardBackgroundColor)
-        } else {
-            Color(0xFF992D7E) // Fallback to Figma color
-        }
-        
-        // Exact Figma gradient specifications:
-        // 1. linear-gradient(180deg, rgba(83, 81, 83, 0.2) 0%, rgba(baseColor, 0.8) 100%)
-        // 2. linear-gradient(0deg, rgba(baseColor, 0.4), rgba(baseColor, 0.4))
-        
-        // First gradient colors (180deg - top to bottom)
-        val gradientTopColor = Color(0xFF535353).copy(alpha = 0.2f)      // rgba(83, 81, 83, 0.2) 
-        val gradientBottomColor = baseColor.copy(alpha = 0.8f)           // Use card color with 80% opacity
-        
-        // Second gradient overlay color (0deg - uniform overlay)
-        val overlayColor = baseColor.copy(alpha = 0.4f)                  // Use card color with 40% opacity
-        
-        // Interpolate from welcome color to the combined gradient effect
-        val interpolatedTop = lerp(welcomeColor, gradientTopColor, animationProgress)
-        val interpolatedBottom = lerp(welcomeColor, gradientBottomColor, animationProgress)
-        
+        // Use animated shimmer colors with smooth transitions
+        val gradientTopColor = animatedShimmerStartColor.copy(alpha = 0.16f)
+        val gradientBottomColor = animatedShimmerEndColor.copy(alpha = 1f)
         // Create the primary vertical gradient (180deg)
         Brush.verticalGradient(
-            colors = listOf(interpolatedTop, interpolatedBottom),
-            startY = 0f,
+            colors = listOf(gradientTopColor, gradientBottomColor),
+            startY = -500f,
             endY = Float.POSITIVE_INFINITY
         )
     }
-    
+
+
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(brush = currentBrush)
+        modifier = Modifier.background(Color(0xFF1E1E1E))
     ) {
-        // Second gradient overlay (0deg - uniform overlay) to match Figma exactly
-        if (!showWelcome) {
-            val baseColor = if (cardBackgroundColor != null) {
-                parseHexColor(cardBackgroundColor)
-            } else {
-                Color(0xFF992D7E) // Fallback to Figma color
+        Box(modifier = Modifier.background(Color(0xFF04602A).copy(alpha = 0.16f))) {
+
+
+            if (!showWelcome) {
+                val overlayColor = animatedBackgroundColor.copy(alpha = 0.4f)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = overlayColor)
+                )
             }
-            val overlayColor = baseColor.copy(alpha = 0.4f * animationProgress)
+
             Box(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxSize()
-                    .background(color = overlayColor)
+                    .background(brush = currentBrush)
             )
-        }
-        
-        // Radial gradient overlay at bottom (above background, below UI) - Always visible
-        AnimatedVisibility(
-            modifier = Modifier.align(Alignment.BottomCenter),
-            visible = !showWelcome,
-            enter = fadeIn()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_radial_gradient),
-                contentDescription = null,
-                contentScale = ContentScale.FillWidth,
+
+            AnimatedVisibility(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-            )
+                    .wrapContentHeight(),
+                visible = !showWelcome,
+                enter = fadeIn()
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_radial_gradient),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                )
+            }
+
         }
     }
+
+
 }
 
 /**
  * Parse hex color string to Compose Color
  */
-private fun parseHexColor(hexString: String): Color {
+private fun parseHexColor(hexString: String?): Color {
+    if(hexString == null) return Color.Transparent
     return try {
         val colorString = if (hexString.startsWith("#")) hexString else "#$hexString"
-        Color(android.graphics.Color.parseColor(colorString))
+        Color(colorString.toColorInt())
     } catch (e: Exception) {
-        Color.Gray // Fallback color
+        Color.Transparent // Fallback color
     }
 } 

@@ -6,14 +6,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.Image
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.painterResource
-import com.shankarkakumani.jaronboardinganimation.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,7 +34,6 @@ fun OnboardingScreen(
     val uiState by viewModel.uiState.collectAsState()
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.toFloat()
-
     // Background that fills the entire screen
     Box(
         modifier = Modifier
@@ -46,12 +41,14 @@ fun OnboardingScreen(
             .background(Color.Black) // Fallback background
     ) {
         // Dynamic background that transitions with card animation
-        val currentCard = uiState.animatedCard?.card
         val animationDuration = uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
         
         DynamicGradientBackground(
             showWelcome = uiState.showWelcome,
-            cardBackgroundColor = currentCard?.backgroundColor,
+            backgroundColor = uiState.backgroundColor,
+            startGradient = uiState.startGradient,
+            endGradient = uiState.endGradient,
+            startY = uiState.startY,
             animationDuration = animationDuration,
             modifier = Modifier.fillMaxSize()
         )
@@ -85,7 +82,9 @@ fun OnboardingScreen(
                     WelcomeSection(
                         title = "Welcome to",
                         subtitle = "Onboarding",
-                        onStartAnimation = { viewModel.onEvent(OnboardingEvent.StartOnboarding(screenHeight)) }
+                        onStartAnimation = {
+                            viewModel.onEvent(OnboardingEvent.StartOnboarding(screenHeight))
+                        }
                     )
                 }
                 
@@ -96,12 +95,9 @@ fun OnboardingScreen(
                         cardState = cardState,
                         animationDuration = animationDuration,
                         onToggleExpansion = { viewModel.onEvent(OnboardingEvent.ToggleCardExpansion) },
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(horizontal = 16.dp)
                     )
                 }
-                
+
                 // Show second animated card
                 uiState.secondAnimatedCard?.let { cardState ->
                     val animationDuration = uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
@@ -109,9 +105,16 @@ fun OnboardingScreen(
                         cardState = cardState,
                         animationDuration = animationDuration,
                         onToggleExpansion = { }, // No interaction for second card
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(horizontal = 16.dp)
+                    )
+                }
+
+                // Show third animated card
+                uiState.thirdAnimatedCard?.let { cardState ->
+                    val animationDuration = uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
+                    AnimatedCard(
+                        cardState = cardState,
+                        animationDuration = animationDuration,
+                        onToggleExpansion = { }, // No interaction for third card
                     )
                 }
             }

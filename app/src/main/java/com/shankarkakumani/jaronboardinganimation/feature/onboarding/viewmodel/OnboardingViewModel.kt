@@ -52,8 +52,7 @@ class OnboardingViewModel @Inject constructor(
             is Result.Success -> {
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
-                        onboardingData = result.data
+                        isLoading = false, onboardingData = result.data
                     )
                 }
             }
@@ -70,8 +69,7 @@ class OnboardingViewModel @Inject constructor(
             is Result.Loading -> {
                 _uiState.update {
                     it.copy(
-                        isLoading = result.isLoading,
-                        error = null
+                        isLoading = result.isLoading, error = null
                     )
                 }
             }
@@ -90,173 +88,229 @@ class OnboardingViewModel @Inject constructor(
 
     private fun animateFirstCard(card: EducationCardModel, screenHeight: Float) =
         viewModelScope.launch {
-            // Calculate positions like in slideIn PoC - using actual screen dimensions
-            val cardHeight = 444f
-            val extraBuffer = 300f
+            val startPosition = screenHeight
+            val centerPosition = 175f + 12f
+            val restingPosition = 175f
 
-            // Start position: way below screen (like PoC)
-            val startPosition = screenHeight + cardHeight + extraBuffer
-
-            // First target position: 178px from top (center position)
-            // Since we're using Alignment.Center, center = screenHeight/2
-            // 178px from top = center - (screenHeight/2 - 178)
-            val centerPosition = -(screenHeight / 2 - 178f) // 178px from top
-
-            // Final target position: 12px from top
-            val finalPosition = -(screenHeight / 2 - 12f) // 12px from top
-
-            // Debug logging
-            println("🔍 Card Animation Debug:")
-            println("   Screen Height: $screenHeight")
-            println("   Start Position: $startPosition (should be below screen)")
-            println("   Center Position: $centerPosition (should be 178px from top)")
-            println("   Final Position: $finalPosition (should be 12px from top)")
-
-            // Phase 1: Initialize card at bottom of screen (way below)
             _uiState.update { state ->
                 state.copy(
                     animatedCard = AnimatedCardState(
                         card = card,
-                        translationY = startPosition,
+                        offset = startPosition,
                         isVisible = true,
-                        animationPhase = AnimationPhase.SLIDE_TO_CENTER
-                    )
+                    ),
+                    backgroundColor = card.backgroundColor,
+                    startGradient = card.startGradient,
+                    endGradient = card.endGradient
                 )
             }
 
             // Small delay to ensure card is rendered
-            delay(50)
+            delay(500)
 
-            // Phase 2: Smoothly move to center position (178px from top)
+            // Phase 2: Smoothly move to center position
             _uiState.update { state ->
                 state.animatedCard?.let { currentCard ->
                     state.copy(
-                        animatedCard = currentCard.copy(translationY = centerPosition)
+                        animatedCard = currentCard.copy(offset = centerPosition),
                     )
                 } ?: state
             }
 
-            // Phase 3: Wait for first animation to complete + expandCardStayInterval
-            val firstAnimationDuration =
-                _uiState.value.onboardingData?.animationConfig?.bottomToCenterTranslationInterval
-                    ?: 1500L
-            val stayInterval =
-                _uiState.value.onboardingData?.animationConfig?.expandCardStayInterval ?: 2000L
+            delay(2000)
 
-            delay(firstAnimationDuration + stayInterval)
+            _uiState.update { state ->
+                state.animatedCard?.let { currentCard ->
+                    state.copy(
+                        animatedCard = currentCard.copy(
+                            isExpanded = false, offset = restingPosition, rotationZ = -6f
+                        ),
+                    )
+                } ?: state
+            }
 
             // Start second card animation while first card is tilted
             val secondCard = _uiState.value.onboardingData?.educationCards?.getOrNull(1)
             if (secondCard != null) {
-                animateSecondCard(secondCard, screenHeight)
+                animateSecondCard(secondCard, screenHeight, restingPosition)
             }
-            _uiState.update { state ->
-                state.animatedCard?.let { currentCard ->
-                    state.copy(
-                        animatedCard = currentCard.copy(
-                            isExpanded = false,
-                            animationPhase = AnimationPhase.AUTO_COLLAPSE,
-                            translationY = -screenHeight - 300f,
-                            rotationZ = -6f  // Tilt 6° - left side down, right side up
-                        )
-                    )
-                } ?: state
-            }
-
 
             // Wait for 2 seconds, then straighten the card over 1.5 seconds
             delay(2000)
-
             _uiState.update { state ->
                 state.animatedCard?.let { currentCard ->
                     state.copy(
                         animatedCard = currentCard.copy(
-                            rotationZ = 0f,  // Straighten the card back to 0°
-                            rotationDuration = 1500  // Control the duration from ViewModel
-                        )
+                            rotationZ = 0f, rotationDuration = 1500
+                        ),
+                        backgroundColor = null,
                     )
                 } ?: state
             }
         }
 
-    private fun animateSecondCard(card: EducationCardModel, screenHeight: Float) =
-        viewModelScope.launch {
-            // Calculate positions exactly like first card
-            val cardHeight = 800f
-            val extraBuffer = 300f
+    private fun animateSecondCard(
+        card: EducationCardModel,
+        screenHeight: Float,
+        previousRestingPosition: Float,
+    ) = viewModelScope.launch {
+        val startPosition = screenHeight
+        val bottomHalf = screenHeight - (444 / 2)
+        val restingPosition = previousRestingPosition + 68f + 12f
 
-            // Start position: way below screen (like first card)
-            val startPosition = screenHeight + cardHeight + extraBuffer
+        _uiState.update { state ->
+            state.copy(
+                secondAnimatedCard = AnimatedCardState(
+                    card = card,
+                    offset = startPosition,
+                    isVisible = true,
+                    rotationDuration = 1500,
+                ),
+            )
+        }
 
-            // Target position: 178px from top (center position)
-            val bottomHalf = screenHeight + (800f / 2)
-            val centerPosition = 0f
+        delay(100)
 
-            // Debug logging
-            println("🔍 Second Card Animation Debug:")
-            println("   Screen Height: $screenHeight")
-            println("   Start Position: $startPosition (should be below screen)")
-            println("   Center Position: $centerPosition (should be 178px from top)")
-
-            // Phase 1: Initialize second card at bottom of screen (way below)
-            _uiState.update { state ->
+        _uiState.update { state ->
+            state.secondAnimatedCard?.let { currentCard ->
                 state.copy(
-                    secondAnimatedCard = AnimatedCardState(
-                        card = card,
-                        translationY = startPosition,
-                        isVisible = true,
+                    secondAnimatedCard = currentCard.copy(
+                        offset = bottomHalf,
                         rotationZ = +6f,
+                    ),
+                    backgroundColor = null,
+                )
+            } ?: state
+        }
+
+        delay(2000)
+
+        _uiState.update { state ->
+            state.secondAnimatedCard?.let { currentCard ->
+                state.copy(
+                    secondAnimatedCard = currentCard.copy(
+                        offset = restingPosition,
+                        rotationZ = 0f,
                         rotationDuration = 1500,
+                    ),
+                    backgroundColor = card.backgroundColor,
+                    startGradient = card.startGradient,
+                    endGradient = card.endGradient
+                )
+            } ?: state
+        }
+
+
+        delay(2000)
+
+        _uiState.update { state ->
+            state.secondAnimatedCard?.let { currentCard ->
+                state.copy(
+                    secondAnimatedCard = currentCard.copy(
+                        isExpanded = false, offset = restingPosition, // Move up above screen
+                        rotationZ = +6f  // Tilt 6° - left side pinned, right side down
                     )
                 )
-            }
-
-            // Small delay to ensure card is rendered
-            delay(100)
-
-            _uiState.update { state ->
-                state.secondAnimatedCard?.let { currentCard ->
-                    state.copy(
-                        secondAnimatedCard = currentCard.copy(
-                            translationY = bottomHalf,
-                            rotationDuration = 1500,
-                        )
-                    )
-                } ?: state
-            }
-
-            delay(2000)
-
-            _uiState.update { state ->
-                state.secondAnimatedCard?.let { currentCard ->
-                    state.copy(
-                        secondAnimatedCard = currentCard.copy(
-                            translationY = centerPosition,
-                            rotationZ = 0f,
-                            rotationDuration = 1500,
-                        )
-                    )
-                } ?: state
-            }
-            delay(2000)
-
-            _uiState.update { state ->
-                state.secondAnimatedCard?.let { currentCard ->
-                    state.copy(
-                        secondAnimatedCard = currentCard.copy(
-                            isExpanded = false,
-                            animationPhase = AnimationPhase.AUTO_COLLAPSE,
-                            translationY = -screenHeight - 0f,
-                            rotationZ = +6f  // Tilt 6° - left side pinned, right side down
-                        )
-                    )
-                } ?: state
-            }
+            } ?: state
         }
 
+        // Start third card animation while second card is tilted
+        val thirdCard = _uiState.value.onboardingData?.educationCards?.getOrNull(2)
+        if (thirdCard != null) {
+            animateThirdCard(thirdCard, screenHeight, restingPosition)
+        }
+
+        delay(2000)
+
+        _uiState.update { state ->
+            state.secondAnimatedCard?.let { currentCard ->
+                state.copy(
+                    secondAnimatedCard = currentCard.copy(
+                        rotationZ = 0f,  // Straighten the card back to 0°
+                        rotationDuration = 1500  // Control the duration from ViewModel
+                    )
+                )
+            } ?: state
+        }
+    }
+
+    private fun animateThirdCard(
+        card: EducationCardModel, screenHeight: Float, previousRestingPosition: Float
+    ) = viewModelScope.launch {
+        val startPosition = screenHeight
+        val bottomHalf = screenHeight - (444 / 2)
+        val restingPosition = previousRestingPosition + 68f + 12f
+
+        _uiState.update { state ->
+            state.copy(
+                thirdAnimatedCard = AnimatedCardState(
+                    card = card,
+                    offset = startPosition,
+                    isVisible = true,
+                    rotationZ = -6f,
+                    rotationDuration = 1500,
+                ),
+            )
+        }
+
+        delay(100)
+
+        _uiState.update { state ->
+            state.thirdAnimatedCard?.let { currentCard ->
+                state.copy(
+                    thirdAnimatedCard = currentCard.copy(
+                        offset = bottomHalf,
+                    ),
+                    backgroundColor = null,
+                )
+            } ?: state
+        }
+
+        delay(2000)
+
+        _uiState.update { state ->
+            state.thirdAnimatedCard?.let { currentCard ->
+                state.copy(
+                    thirdAnimatedCard = currentCard.copy(
+                        offset = restingPosition,
+                        rotationZ = 0f,
+                        rotationDuration = 1500,
+                    ),
+                    backgroundColor = card.backgroundColor,
+                    startGradient = card.startGradient,
+                    endGradient = card.endGradient
+                )
+            } ?: state
+        }
+
+
+        delay(2000)
+        _uiState.update { state ->
+            state.thirdAnimatedCard?.let { currentCard ->
+                state.copy(
+                    backgroundColor = null,
+                )
+            } ?: state
+        }
+    }
+
     private fun handleBackPress() {
-        // Handle back navigation - reset to welcome and clear animated card
-        _uiState.update { it.copy(showWelcome = true, animatedCard = null) }
+        // Handle back navigation - reset to welcome and clear all animated cards
+        _uiState.update {
+            it.copy(
+                showWelcome = true,
+                animatedCard = null,
+                secondAnimatedCard = null,
+                thirdAnimatedCard = null,
+            )
+        }
+    }
+
+    // Function to update gradient startY position
+    private fun updateGradientStartY(newStartY: Float) {
+        _uiState.update {
+            it.copy(startY = newStartY)
+        }
     }
 
     private fun toggleCardExpansion() {

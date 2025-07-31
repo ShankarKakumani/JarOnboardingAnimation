@@ -8,6 +8,7 @@ data class EducationCardModel(
     val endGradient: String,
     val startGradient: String,
     val strokeEndColor: String,
+    val startY: Float,
     val backgroundColor: String,
     val expandStateText: String,
     val strokeStartColor: String,

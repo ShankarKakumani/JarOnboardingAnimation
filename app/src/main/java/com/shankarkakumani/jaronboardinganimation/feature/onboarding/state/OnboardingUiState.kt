@@ -11,15 +11,19 @@ data class OnboardingUiState(
     val showWelcome: Boolean = true,
     val onboardingData: OnboardingDataModel? = null,
     val animatedCard: AnimatedCardState? = null,
-    val secondAnimatedCard: AnimatedCardState? = null
+    val secondAnimatedCard: AnimatedCardState? = null,
+    val thirdAnimatedCard: AnimatedCardState? = null,
+    val startGradient: String? = null,
+    val endGradient: String? = null,
+    val backgroundColor: String? = null,
+    val startY: Float = 0f
 )
 
 @Stable
 data class AnimatedCardState(
     val card: EducationCardModel,
-    val translationY: Float = 1000f, // Start below screen
+    val offset: Float = 0f, // Start below screen (in dp)
     val isVisible: Boolean = false,
-    val animationPhase: AnimationPhase = AnimationPhase.SLIDE_TO_CENTER,
     val isExpanded: Boolean = true, // Start expanded, can collapse to small size
     val rotationZ: Float = 0f, // Rotation in degrees
     val rotationDuration: Int = 1500, // Duration for straightening rotation
