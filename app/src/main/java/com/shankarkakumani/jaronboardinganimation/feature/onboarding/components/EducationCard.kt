@@ -32,7 +32,7 @@ fun EducationCard(
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
-    val cardWidth = minOf(328.dp, screenWidth - 32.dp) // Responsive width with padding
+    val cardWidth = minOf(328.dp, screenWidth - 32.dp)
     val cardHeight = if (isExpanded) 444.dp else 68.dp
     
     Card(

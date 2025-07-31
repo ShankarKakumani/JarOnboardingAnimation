@@ -37,8 +37,10 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.state.AnimatedCardState
 import com.shankarkakumani.domain.resource.model.EducationCardModel
+import com.shankarkakumani.domain.resource.model.AnimationConfigModel
 import com.shankarkakumani.jaronboardinganimation.ui.theme.StyleManager
 import com.shankarkakumani.jaronboardinganimation.util.ColorParser
+import androidx.compose.runtime.remember
 
 
 /**
@@ -54,13 +56,23 @@ import com.shankarkakumani.jaronboardinganimation.util.ColorParser
 @Composable
 fun AnimatedCard(
     cardState: AnimatedCardState,
+    animationConfig: AnimationConfigModel? = null,
 ) {
     val configuration = LocalConfiguration.current
+
+    // Use API-driven animation config with fallbacks
+    val slideAnimationDuration = remember(animationConfig) {
+        animationConfig?.bottomToCenterTranslationInterval?.toInt() ?: 1000
+    }
+    
+    val fadeAnimationDuration = remember(animationConfig) {
+        animationConfig?.collapseExpandIntroInterval?.toInt() ?: 300
+    }
 
     val absoluteOffset by animateFloatAsState(
         targetValue = cardState.offset,
         animationSpec = tween(
-            durationMillis = 1000,
+            durationMillis = slideAnimationDuration,
             easing = androidx.compose.animation.core.FastOutSlowInEasing
         ),
         label = "cardOffsetY"
@@ -68,7 +80,7 @@ fun AnimatedCard(
 
     val animatedAlpha by animateFloatAsState(
         targetValue = if (cardState.isVisible) 1f else 0f,
-        animationSpec = tween(durationMillis = 300),
+        animationSpec = tween(durationMillis = fadeAnimationDuration),
         label = "cardAlpha"
     )
 

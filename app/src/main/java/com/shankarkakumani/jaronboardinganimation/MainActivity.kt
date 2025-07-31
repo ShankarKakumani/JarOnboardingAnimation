@@ -43,7 +43,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 
-                // Content with proper system bar padding
                 OnboardingNavigation(
                     navController = navController,
                     modifier = Modifier

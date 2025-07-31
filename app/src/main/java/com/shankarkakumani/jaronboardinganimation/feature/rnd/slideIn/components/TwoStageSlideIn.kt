@@ -91,8 +91,7 @@ fun TwoStageSlideIn(
         label = "twoStageSlideInAlpha"
     )
     
-    // Animation sequence control
-    LaunchedEffect(Unit) {
+            LaunchedEffect(Unit) {
         delay(startDelay)
         
         // Stage 1: Slide to half position

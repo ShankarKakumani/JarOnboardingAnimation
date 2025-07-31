@@ -70,7 +70,6 @@ fun DynamicGradientBackground(
         label = "gradientStartY"
     )
     
-    // Calculate current background using exact Figma colors
     val currentBrush = if (showWelcome) {
         // Solid welcome color
         Brush.verticalGradient(
@@ -80,7 +79,6 @@ fun DynamicGradientBackground(
         // Use animated shimmer colors with smooth transitions
         val gradientTopColor = animatedShimmerStartColor.copy(alpha = 0.16f)
         val gradientBottomColor = animatedShimmerEndColor.copy(alpha = 1f)
-        // Create the primary vertical gradient (180deg)
         Brush.verticalGradient(
             colors = listOf(gradientTopColor, gradientBottomColor),
             startY = -500f,

@@ -8,8 +8,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -34,9 +36,13 @@ fun OnboardingScreen(
 ) {
     val viewModel: OnboardingViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
+    
+    LaunchedEffect(Unit) {
+        viewModel.onEvent(OnboardingEvent.ResetOnboarding)
+    }
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.toFloat()
-    // Background that fills the entire screen
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -55,7 +61,6 @@ fun OnboardingScreen(
             animationDuration = animationDuration,
             modifier = Modifier.fillMaxSize()
         )
-        // Main content based on state
         when {
             uiState.isLoading -> {
                 LoadingScreen()
@@ -69,7 +74,6 @@ fun OnboardingScreen(
             }
 
             else -> {
-                // Header (always visible) - positioned at top
                 AnimatedVisibility(
                     visible = uiState.showWelcome.not(),
                 ) {
@@ -81,7 +85,6 @@ fun OnboardingScreen(
                     )
                 }
                 
-                // Content area - show welcome or animation content
                 AnimatedVisibility(
                     visible = uiState.showWelcome,
                     enter = fadeIn(animationSpec = tween(300)),
@@ -97,28 +100,27 @@ fun OnboardingScreen(
                     )
                 }
                 
-                // Show animated card when not showing welcome
                 uiState.animatedCard?.let { cardState ->
                     AnimatedCard(
                         cardState = cardState,
+                        animationConfig = uiState.onboardingData?.animationConfig
                     )
                 }
 
-                // Show second animated card
                 uiState.secondAnimatedCard?.let { cardState ->
                     AnimatedCard(
                         cardState = cardState,
+                        animationConfig = uiState.onboardingData?.animationConfig
                     )
                 }
 
-                // Show third animated card
                 uiState.thirdAnimatedCard?.let { cardState ->
                     AnimatedCard(
                         cardState = cardState,
+                        animationConfig = uiState.onboardingData?.animationConfig
                     )
                 }
 
-                // CTA Button positioned at bottom
                 AnimatedVisibility(
                     visible = uiState.showFinalCTA,
                     modifier = Modifier.align(Alignment.BottomCenter)
@@ -129,14 +131,12 @@ fun OnboardingScreen(
                             backgroundColor = data.saveButton.backgroundColor,
                             textColor = data.saveButton.textColor,
                             strokeColor = data.saveButton.strokeColor,
-                            lottieUrl = data.ctaLottie, // Pass the Lottie animation URL
+                            lottieUrl = data.ctaLottie,
                             onClick = {
-                                // TODO: Handle CTA click (deeplink, navigation, etc.)
-                                data.saveButton.deeplink?.let { deeplink ->
-                                    // Handle deeplink navigation
-                                }
+                                viewModel.onEvent(OnboardingEvent.OnCtaClicked)
+                                onNavigateToLanding()
                             },
-                            modifier = Modifier.padding(bottom = 6.8.dp)
+                            modifier = Modifier.navigationBarsPadding().padding(bottom = 8.dp)
                         )
                     }
                 }

@@ -79,6 +79,9 @@ dependencies {
     implementation("androidx.compose.animation:animation:1.5.8")
     implementation(libs.orbital)
     
+    // Lottie
+    implementation("com.airbnb.android:lottie-compose:6.0.0")
+    
     // Testing
     testImplementation(libs.junit)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")

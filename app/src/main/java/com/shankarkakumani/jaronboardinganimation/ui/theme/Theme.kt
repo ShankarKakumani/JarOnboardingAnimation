@@ -29,13 +29,11 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun JarOnboardingAnimationTheme(
-    // Always use dark theme - ignore system setting
     darkTheme: Boolean = true,
     // Disable dynamic color for consistent branding
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    // Always use dark color scheme
     val colorScheme = DarkColorScheme
 
     MaterialTheme(

@@ -1,13 +1,11 @@
 package com.shankarkakumani.jaronboardinganimation.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.shankarkakumani.jaronboardinganimation.feature.landing.screen.LandingScreen
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.screen.OnboardingScreen
 import com.shankarkakumani.jaronboardinganimation.feature.slideIn.screen.ControlledSlideScreen
 import com.shankarkakumani.jaronboardinganimation.feature.slideIn.screen.CustomPatternScreen
@@ -35,8 +33,13 @@ fun OnboardingNavigation(
         }
         
         composable(NavigationDestinations.LANDING) {
-            // TODO: Implement or connect your landing screen here
-            LandingPlaceholderScreen()
+            LandingScreen(
+                onBackPressed = {
+                    navController.navigate(NavigationDestinations.ONBOARDING) {
+                        popUpTo(NavigationDestinations.LANDING) { inclusive = true }
+                    }
+                }
+            )
         }
         
         composable(NavigationDestinations.SLIDE_PLAYGROUND) {
@@ -67,15 +70,4 @@ fun OnboardingNavigation(
     }
 }
 
-@Composable
-private fun LandingPlaceholderScreen() {
-    // TODO: Replace with actual landing screen implementation
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-        contentAlignment = androidx.compose.ui.Alignment.Center
-    ) {
-        androidx.compose.material3.Text(text = "Landing Screen - TODO: Implement")
-    }
-} 
+ 

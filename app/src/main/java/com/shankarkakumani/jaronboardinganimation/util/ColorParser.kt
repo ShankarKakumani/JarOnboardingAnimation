@@ -10,16 +10,15 @@ object ColorParser {
             when {
                 colorString.startsWith("#") -> {
                     if (colorString.length == 7) {
-                        // Add full alpha if not provided
                         Color.parseColor(colorString)
                     } else {
                         Color.parseColor(colorString)
                     }
                 }
-                else -> Color.BLACK // Fallback
+                else -> Color.BLACK
             }
         } catch (e: IllegalArgumentException) {
-            Color.BLACK // Fallback for invalid colors
+            Color.BLACK
         }
     }
     

@@ -36,6 +36,8 @@ class OnboardingViewModel @Inject constructor(
             OnboardingEvent.RetryLoad -> loadOnboardingData()
             is OnboardingEvent.StartOnboarding -> startOnboarding(event.screenHeight)
             OnboardingEvent.ToggleCardExpansion -> toggleCardExpansion()
+            OnboardingEvent.OnCtaClicked -> handleCtaClick()
+            OnboardingEvent.ResetOnboarding -> resetOnboarding()
         }
     }
 
@@ -91,6 +93,12 @@ class OnboardingViewModel @Inject constructor(
             val startPosition = screenHeight
             val centerPosition = 80f + 66f
             val restingPosition = 80f
+            
+            // Get API-driven animation config with fallbacks
+            val animationConfig = _uiState.value.onboardingData?.animationConfig
+            val initialDelay = animationConfig?.collapseExpandIntroInterval ?: 500L
+            val expandDuration = animationConfig?.expandCardStayInterval ?: 2000L
+            val tiltDuration = animationConfig?.collapseCardTiltInterval ?: 2000L
 
             _uiState.update { state ->
                 state.copy(
@@ -106,7 +114,7 @@ class OnboardingViewModel @Inject constructor(
             }
 
             // Small delay to ensure card is rendered
-            delay(500)
+            delay(initialDelay)
 
             // Phase 2: Smoothly move to center position
             _uiState.update { state ->
@@ -117,7 +125,7 @@ class OnboardingViewModel @Inject constructor(
                 } ?: state
             }
 
-            delay(2000)
+            delay(expandDuration)
 
             _uiState.update { state ->
                 state.animatedCard?.let { currentCard ->
@@ -137,8 +145,7 @@ class OnboardingViewModel @Inject constructor(
                 animateSecondCard(secondCard, screenHeight, restingPosition)
             }
 
-            // Wait for 2 seconds, then straighten the card over 1.5 seconds
-            delay(2000)
+            delay(tiltDuration)
             _uiState.update { state ->
                 state.animatedCard?.let { currentCard ->
                     state.copy(
@@ -159,6 +166,12 @@ class OnboardingViewModel @Inject constructor(
         val startPosition = screenHeight
         val bottomHalf = screenHeight - (444 / 2)
         val restingPosition = previousRestingPosition + 68f + 12f
+        
+        // Get API-driven animation config with fallbacks
+        val animationConfig = _uiState.value.onboardingData?.animationConfig
+        val quickDelay = 100L // Small positioning delay
+        val expandDuration = animationConfig?.expandCardStayInterval ?: 2000L
+        val tiltDuration = animationConfig?.collapseCardTiltInterval ?: 2000L
 
         _uiState.update { state ->
             state.copy(
@@ -171,7 +184,7 @@ class OnboardingViewModel @Inject constructor(
             )
         }
 
-        delay(100)
+        delay(quickDelay)
 
         _uiState.update { state ->
             state.secondAnimatedCard?.let { currentCard ->
@@ -185,7 +198,7 @@ class OnboardingViewModel @Inject constructor(
             } ?: state
         }
 
-        delay(2000)
+        delay(expandDuration)
 
         _uiState.update { state ->
             state.secondAnimatedCard?.let { currentCard ->
@@ -202,15 +215,14 @@ class OnboardingViewModel @Inject constructor(
             } ?: state
         }
 
-
-        delay(2000)
+        delay(tiltDuration)
 
         _uiState.update { state ->
             state.secondAnimatedCard?.let { currentCard ->
                 state.copy(
                     secondAnimatedCard = currentCard.copy(
-                        isExpanded = false, offset = restingPosition, // Move up above screen
-                        rotationZ = +6f  // Tilt 6° - left side pinned, right side down
+                        isExpanded = false, offset = restingPosition,
+                        rotationZ = +6f
                     )
                 )
             } ?: state
@@ -242,6 +254,11 @@ class OnboardingViewModel @Inject constructor(
         val startPosition = screenHeight
         val bottomHalf = screenHeight - (444 / 2)
         val restingPosition = previousRestingPosition + 68f + 12f
+        
+        // Get API-driven animation config with fallbacks
+        val animationConfig = _uiState.value.onboardingData?.animationConfig
+        val quickDelay = 100L // Small positioning delay
+        val expandDuration = animationConfig?.expandCardStayInterval ?: 2000L
 
         _uiState.update { state ->
             state.copy(
@@ -255,7 +272,7 @@ class OnboardingViewModel @Inject constructor(
             )
         }
 
-        delay(100)
+        delay(quickDelay)
 
         _uiState.update { state ->
             state.thirdAnimatedCard?.let { currentCard ->
@@ -268,7 +285,7 @@ class OnboardingViewModel @Inject constructor(
             } ?: state
         }
 
-        delay(2000)
+        delay(expandDuration)
 
         _uiState.update { state ->
             state.thirdAnimatedCard?.let { currentCard ->
@@ -285,8 +302,7 @@ class OnboardingViewModel @Inject constructor(
             } ?: state
         }
 
-
-        delay(2000)
+        delay(expandDuration)
         _uiState.update { state ->
             state.thirdAnimatedCard?.let { currentCard ->
                 state.copy(
@@ -298,18 +314,40 @@ class OnboardingViewModel @Inject constructor(
     }
 
     private fun handleBackPress() {
-        // Handle back navigation - reset to welcome and clear all animated cards
         _uiState.update {
             it.copy(
                 showWelcome = true,
                 animatedCard = null,
                 secondAnimatedCard = null,
                 thirdAnimatedCard = null,
+                showFinalCTA = false,
+            )
+        }
+    }
+    
+    private fun handleCtaClick() {
+        // No state change needed - navigation handles transition
+    }
+    
+    private fun resetOnboarding() {
+        _uiState.update {
+            OnboardingUiState(
+                isLoading = false,
+                error = null,
+                showWelcome = true,
+                onboardingData = it.onboardingData,
+                animatedCard = null,
+                secondAnimatedCard = null,
+                thirdAnimatedCard = null,
+                startGradient = null,
+                endGradient = null,
+                backgroundColor = null,
+                startY = 0f,
+                showFinalCTA = false
             )
         }
     }
 
-    // Function to update gradient startY position
     private fun updateGradientStartY(newStartY: Float) {
         _uiState.update {
             it.copy(startY = newStartY)
