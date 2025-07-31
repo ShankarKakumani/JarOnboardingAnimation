@@ -91,6 +91,20 @@ API Config: ┌─────────────────────�
 - **Image Loading**: Coil
 - **Lottie**: Airbnb Lottie Compose
 
+## 📱 Download
+
+### Ready to Try?
+Download the latest release directly:
+
+[![Download AAB](https://img.shields.io/badge/Download-AAB%20v1.0.0-blue?style=for-the-badge&logo=android)](https://github.com/ShankarKakumani/JarOnboardingAnimation/releases/latest/download/app-release.aab)
+
+**Note:** AAB files require installation via `bundletool` or direct deployment. For easy installation, check our [GitHub Releases](https://github.com/ShankarKakumani/JarOnboardingAnimation/releases) for APK files.
+
+### System Requirements
+- **Android 7.0+** (API level 24)
+- **ARM64** or **x86_64** architecture
+- **50MB** free storage space
+
 ## 🚦 Getting Started
 
 ### Prerequisites
@@ -100,7 +114,7 @@ API Config: ┌─────────────────────�
 
 ### Setup
 ```bash
-git clone <repository-url>
+git clone https://github.com/ShankarKakumani/JarOnboardingAnimation.git
 cd JarOnboardingAnimation
 ./gradlew build
 ```
