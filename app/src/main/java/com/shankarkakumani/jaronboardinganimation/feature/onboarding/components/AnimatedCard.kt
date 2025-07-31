@@ -3,7 +3,6 @@ package com.shankarkakumani.jaronboardinganimation.feature.onboarding.components
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,12 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
@@ -32,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.shankarkakumani.jaronboardinganimation.feature.onboarding.state.AnimatedCardState
-import com.shankarkakumani.jaronboardinganimation.feature.onboarding.state.AnimationPhase
 import com.shankarkakumani.domain.resource.model.EducationCardModel
 import androidx.core.graphics.toColorInt
 import com.shankarkakumani.jaronboardinganimation.ui.theme.StyleManager
@@ -40,7 +41,7 @@ import com.shankarkakumani.jaronboardinganimation.ui.theme.StyleManager
 
 /**
  * AnimatedCard using absoluteOffset for position control
- * 
+ *
  * Benefits of using absoluteOffset over translationY:
  * 1. Direct dp-based positioning - no pixel conversion needed
  * 2. More intuitive coordinate system - works directly with screen dimensions
@@ -51,13 +52,11 @@ import com.shankarkakumani.jaronboardinganimation.ui.theme.StyleManager
 @Composable
 fun AnimatedCard(
     cardState: AnimatedCardState,
-    animationDuration: Long = 1500L,
-    onToggleExpansion: () -> Unit = {},
 ) {
     val configuration = LocalConfiguration.current
 
     val absoluteOffset by animateFloatAsState(
-        targetValue = cardState.offset - 100,
+        targetValue = cardState.offset,
         animationSpec = tween(
             durationMillis = 1000,
             easing = androidx.compose.animation.core.FastOutSlowInEasing
@@ -81,24 +80,27 @@ fun AnimatedCard(
     )
 
     val transformOrigin = when {
-        cardState.rotationZ > 0 -> TransformOrigin(
+        animatedRotationZ > 0.1f -> TransformOrigin(0f, 0.5f) // Left edge for positive rotation
+        animatedRotationZ < -0.1f -> TransformOrigin(1f, 0.5f) // Right edge for negative rotation
+        cardState.rotationZ > 0.1f -> TransformOrigin(
             0f,
             0.5f
-        )
-        cardState.rotationZ < 0 -> TransformOrigin(
+        ) // Maintain left edge when straightening from positive
+        cardState.rotationZ < -0.1f -> TransformOrigin(
             1f,
             0.5f
-        )
-        else -> TransformOrigin(0.5f, 0.5f) // No rotation: center origin
+        ) // Maintain right edge when straightening from negative
+        else -> TransformOrigin(0.5f, 0.5f) // Center origin only if never rotated
     }
 
     Box(
         modifier = Modifier
             .padding(16.dp)
-            .absoluteOffset(y = (absoluteOffset).dp)
-            .rotate(animatedRotationZ)
+            .wrapContentHeight()
+            .absoluteOffset(y = absoluteOffset.dp)
             .graphicsLayer(
                 alpha = animatedAlpha,
+                rotationZ = animatedRotationZ,
                 transformOrigin = transformOrigin
             )
 
@@ -106,7 +108,7 @@ fun AnimatedCard(
         if (cardState.isExpanded) {
             ExpandedCardContent(card = cardState.card)
         } else {
-            CollapsedCardContent(card = cardState.card, onExpand = onToggleExpansion)
+            CollapsedCardContent(card = cardState.card)
         }
     }
 
@@ -117,9 +119,19 @@ private fun ExpandedCardContent(card: EducationCardModel) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(444.dp)
+//            .height(444.dp)
             .background(
                 color = parseHexColor(card.backgroundColor).copy(alpha = 0.3f),
+                shape = RoundedCornerShape(28.dp)
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        parseHexColor(card.strokeStartColor),
+                        parseHexColor(card.strokeEndColor)
+                    )
+                ),
                 shape = RoundedCornerShape(28.dp)
             )
             .padding(16.dp),
@@ -149,22 +161,20 @@ private fun ExpandedCardContent(card: EducationCardModel) {
 @Composable
 private fun CollapsedCardContent(
     card: EducationCardModel,
-    onExpand: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(68.dp)
             .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        parseHexColor(card.backgroundColor),
-                        parseHexColor(card.startGradient)
-                    )
-                ),
+                color = parseHexColor(card.backgroundColor).copy(alpha = 0.32f),
                 shape = RoundedCornerShape(16.dp)
             )
-            .clickable { onExpand() }
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(16.dp)
+            )
             .padding(horizontal = 12.dp, vertical = 8.dp),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -172,12 +182,15 @@ private fun CollapsedCardContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Small image on left
-            AsyncImage(
-                model = card.image,
-                contentDescription = card.collapsedStateText,
-                modifier = Modifier.size(32.dp),
-                alignment = Alignment.Center
-            )
+            Box(modifier = Modifier.background(shape = CircleShape, color = Color.Transparent)) {
+                AsyncImage(
+                    model = card.image,
+                    contentDescription = card.collapsedStateText,
+                    modifier = Modifier
+                        .size(32.dp),
+                    alignment = Alignment.Center
+                )
+            }
 
             // Collapsed text next to image
             Text(

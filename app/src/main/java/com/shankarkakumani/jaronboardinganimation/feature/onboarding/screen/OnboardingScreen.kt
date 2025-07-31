@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Alignment
@@ -41,8 +42,9 @@ fun OnboardingScreen(
             .background(Color.Black) // Fallback background
     ) {
         // Dynamic background that transitions with card animation
-        val animationDuration = uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
-        
+        val animationDuration =
+            uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
+
         DynamicGradientBackground(
             showWelcome = uiState.showWelcome,
             backgroundColor = uiState.backgroundColor,
@@ -57,20 +59,26 @@ fun OnboardingScreen(
             uiState.isLoading -> {
                 LoadingScreen()
             }
+
             uiState.error != null -> {
                 ErrorScreen(
                     error = uiState.error!!,
                     onRetry = { viewModel.onEvent(OnboardingEvent.RetryLoad) }
                 )
             }
+
             else -> {
                 // Header (always visible) - positioned at top
-                OnboardingHeader(
-                    title = "Onboarding",
-                    iconUrl = "",
-                    onBackPressed = { viewModel.onEvent(OnboardingEvent.OnBackPressed) },
-                    modifier = Modifier.align(Alignment.TopCenter)
-                )
+                AnimatedVisibility(
+                    visible = uiState.showWelcome.not(),
+                ) {
+                    OnboardingHeader(
+                        title = "Onboarding",
+                        iconUrl = "",
+                        onBackPressed = { viewModel.onEvent(OnboardingEvent.OnBackPressed) },
+                        modifier = Modifier.align(Alignment.TopCenter)
+                    )
+                }
                 
                 // Content area - show welcome or animation content
                 AnimatedVisibility(
@@ -90,31 +98,22 @@ fun OnboardingScreen(
                 
                 // Show animated card when not showing welcome
                 uiState.animatedCard?.let { cardState ->
-                    val animationDuration = uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
                     AnimatedCard(
                         cardState = cardState,
-                        animationDuration = animationDuration,
-                        onToggleExpansion = { viewModel.onEvent(OnboardingEvent.ToggleCardExpansion) },
                     )
                 }
 
                 // Show second animated card
                 uiState.secondAnimatedCard?.let { cardState ->
-                    val animationDuration = uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
                     AnimatedCard(
                         cardState = cardState,
-                        animationDuration = animationDuration,
-                        onToggleExpansion = { }, // No interaction for second card
                     )
                 }
 
                 // Show third animated card
                 uiState.thirdAnimatedCard?.let { cardState ->
-                    val animationDuration = uiState.onboardingData?.animationConfig?.bottomToCenterTranslationInterval ?: 1500L
                     AnimatedCard(
                         cardState = cardState,
-                        animationDuration = animationDuration,
-                        onToggleExpansion = { }, // No interaction for third card
                     )
                 }
             }

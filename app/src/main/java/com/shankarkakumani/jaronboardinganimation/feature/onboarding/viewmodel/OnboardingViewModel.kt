@@ -89,8 +89,8 @@ class OnboardingViewModel @Inject constructor(
     private fun animateFirstCard(card: EducationCardModel, screenHeight: Float) =
         viewModelScope.launch {
             val startPosition = screenHeight
-            val centerPosition = 175f + 12f
-            val restingPosition = 175f
+            val centerPosition = 80f + 66f
+            val restingPosition = 80f
 
             _uiState.update { state ->
                 state.copy(
@@ -123,7 +123,9 @@ class OnboardingViewModel @Inject constructor(
                 state.animatedCard?.let { currentCard ->
                     state.copy(
                         animatedCard = currentCard.copy(
-                            isExpanded = false, offset = restingPosition, rotationZ = -6f
+                            isExpanded = false,
+                            offset = restingPosition,
+                            rotationZ = -6f,
                         ),
                     )
                 } ?: state
