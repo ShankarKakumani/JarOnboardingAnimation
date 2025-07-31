@@ -132,7 +132,7 @@ Due to time constraints, the following features were identified but not implemen
 - **Technical approach**: 
   ```kotlin
   // Add to AnimatedCardState
-  val isUserExpanded: Boolean = false
+  val isExpandedByUser: Boolean = false
   val allowInteraction: Boolean = true
   
   // Click handler in CollapsedCardContent  
