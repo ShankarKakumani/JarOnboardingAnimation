@@ -291,6 +291,7 @@ class OnboardingViewModel @Inject constructor(
             state.thirdAnimatedCard?.let { currentCard ->
                 state.copy(
                     backgroundColor = null,
+                    showFinalCTA = true
                 )
             } ?: state
         }
